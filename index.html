@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Novaek — Cybersecurity</title>
+<meta name="description" content="Cybersecurity researcher. Detection engineering, red teaming, Windows internals. 2nd @ CSAW RED 2025.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&family=Syne:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg:       #0a0a0c;
+    --bg2:      #0f0f12;
+    --bg3:      #141418;
+    --line:     #1e1e24;
+    --line2:    #2a2a32;
+    --txt:      #e2e2e8;
+    --txt2:     #7a7a8a;
+    --txt3:     #44444e;
+    --green:    #4ade80;
+    --green2:   #22c55e;
+    --green-bg: #0d1f14;
+    --green-bd: #1a3824;
+    --red:      #f87171;
+    --red-bg:   #1a0d0d;
+    --amber:    #fbbf24;
+    --amber-bg: #1a1500;
+    --mono:     'JetBrains Mono', monospace;
+    --sans:     'Syne', sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--txt);
+    font-family: var(--mono);
+    font-size: 14px;
+    line-height: 1.6;
+    overflow-x: hidden;
+  }
+
+  /* ── scrollbar ── */
+  ::-webkit-scrollbar { width: 4px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line2); border-radius: 2px; }
+
+  /* ── noise texture overlay ── */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E");
+    pointer-events: none;
+    z-index: 0;
+    opacity: .4;
+  }
+
+  /* ── grid lines bg ── */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 40px 40px;
+    pointer-events: none;
+    z-index: 0;
+    opacity: .35;
+  }
+
+  /* ── layout ── */
+  .wrap {
+    position: relative;
+    z-index: 1;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+
+  /* ── nav ── */
+  nav {
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    border-bottom: 1px solid var(--line);
+    background: rgba(10,10,12,.85);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
+  }
+  .nav-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    height: 52px;
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 24px;
+  }
+  .nav-logo {
+    font-family: var(--sans);
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--txt);
+    text-decoration: none;
+    letter-spacing: -.01em;
+  }
+  .nav-logo em { color: var(--green); font-style: normal; }
+  .nav-links {
+    display: flex;
+    gap: 28px;
+    list-style: none;
+  }
+  .nav-links a {
+    font-size: 11px;
+    color: var(--txt2);
+    text-decoration: none;
+    letter-spacing: .08em;
+    text-transform: uppercase;
+    transition: color .15s;
+  }
+  .nav-links a:hover { color: var(--txt); }
+
+  /* ── hero ── */
+  .hero {
+    padding: 80px 0 64px;
+    border-bottom: 1px solid var(--line);
+  }
+  .hero-eyebrow {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: .14em;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .hero-eyebrow::before {
+    content: '';
+    display: block;
+    width: 24px;
+    height: 1px;
+    background: var(--green);
+  }
+  .hero-name {
+    font-family: var(--sans);
+    font-size: clamp(40px, 8vw, 64px);
+    font-weight: 700;
+    line-height: 1.0;
+    letter-spacing: -.03em;
+    color: var(--txt);
+    margin-bottom: 8px;
+  }
+  .hero-name span { color: var(--green); }
+  .hero-sub {
+    font-size: 13px;
+    color: var(--txt2);
+    margin-bottom: 32px;
+    max-width: 420px;
+    line-height: 1.7;
+  }
+  .hero-badges {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 36px;
+  }
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 4px;
+    border: 1px solid var(--line2);
+    color: var(--txt2);
+    background: var(--bg2);
+    white-space: nowrap;
+  }
+  .badge.accent {
+    border-color: var(--green-bd);
+    color: var(--green);
+    background: var(--green-bg);
+  }
+  .badge.accent::before {
+    content: '';
+    display: block;
+    width: 6px; height: 6px;
+    border-radius: 50%;
+    background: var(--green);
+  }
+  .hero-cta {
+    display: flex;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  .btn {
+    font-family: var(--mono);
+    font-size: 12px;
+    padding: 10px 22px;
+    border-radius: 6px;
+    border: 1px solid;
+    cursor: pointer;
+    text-decoration: none;
+    transition: all .15s;
+    letter-spacing: .04em;
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .btn-fill {
+    background: var(--green);
+    color: #060e09;
+    border-color: var(--green);
+    font-weight: 500;
+  }
+  .btn-fill:hover { background: var(--green2); border-color: var(--green2); }
+  .btn-ghost {
+    background: transparent;
+    color: var(--txt2);
+    border-color: var(--line2);
+  }
+  .btn-ghost:hover { color: var(--txt); border-color: var(--txt3); }
+
+  /* ── stat bar ── */
+  .stat-bar {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-bottom: 1px solid var(--line);
+  }
+  .stat-cell {
+    padding: 24px;
+    border-right: 1px solid var(--line);
+  }
+  .stat-cell:last-child { border-right: none; }
+  .stat-num {
+    font-family: var(--sans);
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--txt);
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+  .stat-num em { color: var(--green); font-style: normal; }
+  .stat-label {
+    font-size: 11px;
+    color: var(--txt3);
+    letter-spacing: .04em;
+  }
+
+  /* ── sections ── */
+  section {
+    padding: 56px 0;
+    border-bottom: 1px solid var(--line);
+  }
+  .sec-header {
+    display: flex;
+    align-items: baseline;
+    gap: 14px;
+    margin-bottom: 32px;
+  }
+  .sec-num {
+    font-size: 11px;
+    color: var(--green);
+    letter-spacing: .1em;
+    font-weight: 400;
+  }
+  .sec-title {
+    font-family: var(--sans);
+    font-size: 18px;
+    font-weight: 700;
+    color: var(--txt);
+    letter-spacing: -.01em;
+  }
+
+  /* ── projects ── */
+  .projects-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 560px) { .projects-grid { grid-template-columns: 1fr; } }
+
+  .proj-card {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 20px;
+    text-decoration: none;
+    color: inherit;
+    display: block;
+    transition: border-color .15s, background .15s;
+    position: relative;
+    overflow: hidden;
+  }
+  .proj-card:hover { border-color: var(--line2); background: var(--bg3); }
+  .proj-card.featured {
+    border-color: var(--green-bd);
+    background: var(--green-bg);
+    grid-column: 1 / -1;
+  }
+  .proj-card.featured:hover { border-color: var(--green2); }
+
+  .proj-card-inner { display: flex; flex-direction: column; height: 100%; }
+  .proj-head {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+  .proj-name {
+    font-family: var(--sans);
+    font-size: 14px;
+    font-weight: 700;
+    color: var(--txt);
+  }
+  .proj-tag {
+    font-size: 10px;
+    padding: 2px 8px;
+    border-radius: 3px;
+    white-space: nowrap;
+    flex-shrink: 0;
+    margin-left: 8px;
+  }
+  .tag-wip  { background: var(--amber-bg); color: var(--amber); border: 1px solid #3d3200; }
+  .tag-red  { background: var(--red-bg);   color: var(--red);   border: 1px solid #3d1a1a; }
+  .tag-def  { background: var(--bg3);      color: var(--txt2);  border: 1px solid var(--line2); }
+
+  .proj-desc {
+    font-size: 12px;
+    color: var(--txt2);
+    line-height: 1.65;
+    margin-bottom: 14px;
+    flex: 1;
+  }
+  .proj-stack { display: flex; gap: 6px; flex-wrap: wrap; }
+  .stack-pill {
+    font-size: 10px;
+    color: var(--txt3);
+    padding: 2px 8px;
+    border-radius: 3px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+  }
+  .proj-card.featured .stack-pill {
+    background: rgba(0,0,0,.3);
+    border-color: var(--green-bd);
+    color: var(--green2);
+  }
+  .proj-arrow {
+    position: absolute;
+    bottom: 18px;
+    right: 18px;
+    font-size: 16px;
+    color: var(--txt3);
+    transition: color .15s, transform .15s;
+  }
+  .proj-card:hover .proj-arrow { color: var(--green); transform: translate(2px,-2px); }
+
+  /* ── CTF ── */
+  .ctf-list { display: flex; flex-direction: column; gap: 8px; }
+  .ctf-row {
+    display: flex;
+    align-items: center;
+    padding: 14px 18px;
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 7px;
+    gap: 16px;
+    transition: border-color .15s;
+  }
+  .ctf-row:hover { border-color: var(--line2); }
+  .ctf-rank-badge {
+    font-family: var(--sans);
+    font-size: 13px;
+    font-weight: 700;
+    min-width: 56px;
+  }
+  .rank-gold   { color: var(--green); }
+  .rank-silver { color: #94a3b8; }
+  .rank-bronze { color: #cd7f32; }
+  .ctf-info { flex: 1; }
+  .ctf-name { font-size: 13px; color: var(--txt); margin-bottom: 2px; }
+  .ctf-detail { font-size: 11px; color: var(--txt3); }
+  .ctf-year {
+    font-size: 11px;
+    color: var(--txt3);
+    padding: 3px 8px;
+    border: 1px solid var(--line);
+    border-radius: 3px;
+  }
+
+  /* ── skills ── */
+  .skills-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+  @media (max-width: 500px) { .skills-grid { grid-template-columns: 1fr; } }
+  .skill-group {
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 16px 18px;
+  }
+  .skill-group-label {
+    font-size: 10px;
+    color: var(--green);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .skill-group-label::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--line);
+  }
+  .skill-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+  .skill-pill {
+    font-size: 11px;
+    color: var(--txt2);
+    padding: 4px 10px;
+    border-radius: 4px;
+    background: var(--bg);
+    border: 1px solid var(--line);
+    transition: border-color .1s, color .1s;
+  }
+  .skill-pill:hover { border-color: var(--green-bd); color: var(--green); }
+
+  /* ── about ── */
+  .about-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 32px;
+    align-items: start;
+  }
+  @media (max-width: 560px) { .about-grid { grid-template-columns: 1fr; } }
+  .about-text { font-size: 13px; color: var(--txt2); line-height: 1.8; }
+  .about-text p + p { margin-top: 12px; }
+  .about-text a { color: var(--green); text-decoration: none; }
+  .about-highlights { display: flex; flex-direction: column; gap: 10px; }
+  .highlight-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px 14px;
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    font-size: 12px;
+    color: var(--txt2);
+  }
+  .hl-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    flex-shrink: 0;
+  }
+
+  /* ── contact ── */
+  .contact-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+  }
+  @media (max-width: 500px) { .contact-grid { grid-template-columns: 1fr; } }
+  .contact-card {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background: var(--bg2);
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--txt2);
+    transition: border-color .15s, color .15s;
+    font-size: 13px;
+  }
+  .contact-card:hover { border-color: var(--green-bd); color: var(--green); }
+  .contact-icon {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    background: var(--bg3);
+    border: 1px solid var(--line2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+  .contact-icon svg { width: 15px; height: 15px; stroke: currentColor; }
+
+  /* ── footer ── */
+  footer {
+    padding: 28px 0;
+    border-top: 1px solid var(--line);
+  }
+  .footer-inner {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 11px;
+    color: var(--txt3);
+  }
+  .footer-logo { color: var(--green); }
+
+  /* ── animations ── */
+  .fade-up {
+    opacity: 0;
+    transform: translateY(18px);
+    transition: opacity .5s ease, transform .5s ease;
+  }
+  .fade-up.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* stagger delays */
+  .d1 { transition-delay: .05s; }
+  .d2 { transition-delay: .12s; }
+  .d3 { transition-delay: .19s; }
+  .d4 { transition-delay: .26s; }
+  .d5 { transition-delay: .33s; }
+  .d6 { transition-delay: .40s; }
+
+  /* terminal cursor blink */
+  .cursor {
+    display: inline-block;
+    width: 2px;
+    height: 1em;
+    background: var(--green);
+    vertical-align: text-bottom;
+    animation: blink 1.1s step-end infinite;
+    margin-left: 2px;
+  }
+  @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+  /* scanline effect on hero */
+  .hero-scanline {
+    position: absolute;
+    left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, transparent, var(--green), transparent);
+    opacity: .12;
+    pointer-events: none;
+    animation: scan 4s linear infinite;
+  }
+  @keyframes scan {
+    0%   { top: 0; }
+    100% { top: 100%; }
+  }
+
+  .hero-wrap {
+    position: relative;
+    overflow: hidden;
+  }
+</style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-inner">
+    <a href="#" class="nav-logo">nova<em>ek</em></a>
+    <ul class="nav-links">
+      <li><a href="#projects">projects</a></li>
+      <li><a href="#ctf">ctf</a></li>
+      <li><a href="#skills">skills</a></li>
+      <li><a href="#about">about</a></li>
+      <li><a href="#contact">contact</a></li>
+    </ul>
+  </div>
+</nav>
+
+<div class="hero-wrap">
+  <div class="hero-scanline"></div>
+  <div class="wrap">
+    <div class="hero">
+      <div class="hero-eyebrow fade-up visible">cybersecurity researcher</div>
+      <h1 class="hero-name fade-up visible d1">
+        Red team.<br>
+        Blue team.<br>
+        <span>Build things.</span>
+      </h1>
+      <p class="hero-sub fade-up visible d2">
+        Detection engineering · Windows internals · Offensive tooling.<br>
+        Currently building a personal EDR from scratch.
+      </p>
+      <div class="hero-badges fade-up visible d3">
+        <span class="badge accent">2nd @ CSAW RED 2025</span>
+        <span class="badge accent">Top 10% @ 404CTF 2025</span>
+        <span class="badge">EDR in progress</span>
+        <span class="badge">C++ · C# · Python · Kali</span>
+      </div>
+      <div class="hero-cta fade-up visible d4">
+        <a href="#projects" class="btn btn-fill">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22"/></svg>
+          View projects
+        </a>
+        <a href="mailto:novaek.dev@gmail.com" class="btn btn-ghost">
+          novaek.dev@gmail.com
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="stat-bar fade-up visible d5">
+  <div class="stat-cell">
+    <div class="stat-num">2<em>nd</em></div>
+    <div class="stat-label">CSAW RED 2025</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">Top <em>10%</em></div>
+    <div class="stat-label">404CTF 2025</div>
+  </div>
+  <div class="stat-cell">
+    <div class="stat-num">4<em>+</em></div>
+    <div class="stat-label">public projects</div>
+  </div>
+</div>
+
+<!-- PROJECTS -->
+<section id="projects">
+  <div class="wrap">
+    <div class="sec-header fade-up">
+      <span class="sec-num">01 /</span>
+      <h2 class="sec-title">Selected projects</h2>
+    </div>
+    <div class="projects-grid">
+
+      <a href="https://github.com/novaek" class="proj-card featured fade-up d1" target="_blank" rel="noopener">
+        <div class="proj-card-inner">
+          <div class="proj-head">
+            <span class="proj-name">Personal EDR</span>
+            <span class="proj-tag tag-wip">WIP</span>
+          </div>
+          <p class="proj-desc">
+            Behavioral detection engine focusing on process injection, API hooking, and memory anomaly analysis. Built to understand the arms race between EDR evasion and detection engineering at the Windows kernel level.
+          </p>
+          <div class="proj-stack">
+            <span class="stack-pill">C++</span>
+            <span class="stack-pill">Windows API</span>
+            <span class="stack-pill">Detection eng.</span>
+            <span class="stack-pill">Kernel</span>
+          </div>
+        </div>
+        <span class="proj-arrow">↗</span>
+      </a>
+
+      <a href="https://github.com/novaek" class="proj-card fade-up d2" target="_blank" rel="noopener">
+        <div class="proj-card-inner">
+          <div class="proj-head">
+            <span class="proj-name">Malware behavior lab</span>
+            <span class="proj-tag tag-red">Research</span>
+          </div>
+          <p class="proj-desc">
+            Custom samples built to study C2 patterns, persistence mechanisms and EDR evasion. Educational only — built to better understand how to detect, not to attack.
+          </p>
+          <div class="proj-stack">
+            <span class="stack-pill">C#</span>
+            <span class="stack-pill">Python</span>
+            <span class="stack-pill">Threat emulation</span>
+          </div>
+        </div>
+        <span class="proj-arrow">↗</span>
+      </a>
+
+      <a href="https://github.com/novaek/little_Osint_framwork" class="proj-card fade-up d3" target="_blank" rel="noopener">
+        <div class="proj-card-inner">
+          <div class="proj-head">
+            <span class="proj-name">OSINT framework</span>
+            <span class="proj-tag tag-def">Python</span>
+          </div>
+          <p class="proj-desc">
+            Lightweight modular framework to gather public information. Built for recon workflows during CTFs and security assessments.
+          </p>
+          <div class="proj-stack">
+            <span class="stack-pill">Python</span>
+            <span class="stack-pill">OSINT</span>
+          </div>
+        </div>
+        <span class="proj-arrow">↗</span>
+      </a>
+
+      <a href="https://github.com/novaek/Mind-Map-extension-for-VS-code" class="proj-card fade-up d4" target="_blank" rel="noopener">
+        <div class="proj-card-inner">
+          <div class="proj-head">
+            <span class="proj-name">VS Code mind map</span>
+            <span class="proj-tag tag-def">Extension</span>
+          </div>
+          <p class="proj-desc">
+            Custom mind map extension for VS Code. Built from scratch because the existing ones didn't do what was needed. Because sometimes you just build your own tools.
+          </p>
+          <div class="proj-stack">
+            <span class="stack-pill">HTML</span>
+            <span class="stack-pill">JavaScript</span>
+            <span class="stack-pill">VS Code API</span>
+          </div>
+        </div>
+        <span class="proj-arrow">↗</span>
+      </a>
+
+      <a href="https://github.com/novaek/NOV_Video_CODEC" class="proj-card fade-up d5" target="_blank" rel="noopener">
+        <div class="proj-card-inner">
+          <div class="proj-head">
+            <span class="proj-name">NOV video codec</span>
+            <span class="proj-tag tag-def">C++</span>
+          </div>
+          <p class="proj-desc">
+            Custom video codec implemented in C++. Started because understanding compression at a low level is more interesting than using a library.
+          </p>
+          <div class="proj-stack">
+            <span class="stack-pill">C++</span>
+            <span class="stack-pill">Compression</span>
+          </div>
+        </div>
+        <span class="proj-arrow">↗</span>
+      </a>
+
+      <a href="https://github.com/novaek/WRITE_UP" class="proj-card fade-up d6" target="_blank" rel="noopener">
+        <div class="proj-card-inner">
+          <div class="proj-head">
+            <span class="proj-name">CTF writeups</span>
+            <span class="proj-tag tag-def">Docs</span>
+          </div>
+          <p class="proj-desc">
+            Detailed writeups explaining exploitation paths, thought process and mitigations from CTF competitions.
+          </p>
+          <div class="proj-stack">
+            <span class="stack-pill">Markdown</span>
+            <span class="stack-pill">Forensics</span>
+            <span class="stack-pill">Pwn</span>
+          </div>
+        </div>
+        <span class="proj-arrow">↗</span>
+      </a>
+
+    </div>
+  </div>
+</section>
+
+<!-- CTF -->
+<section id="ctf">
+  <div class="wrap">
+    <div class="sec-header fade-up">
+      <span class="sec-num">02 /</span>
+      <h2 class="sec-title">CTF &amp; competitions</h2>
+    </div>
+    <div class="ctf-list">
+      <div class="ctf-row fade-up d1">
+        <div class="ctf-rank-badge rank-gold">2nd</div>
+        <div class="ctf-info">
+          <div class="ctf-name">CSAW RED</div>
+          <div class="ctf-detail">Red teaming CTF — international</div>
+        </div>
+        <div class="ctf-year">2025</div>
+      </div>
+      <div class="ctf-row fade-up d2">
+        <div class="ctf-rank-badge rank-silver">Top 10%</div>
+        <div class="ctf-info">
+          <div class="ctf-name">404CTF</div>
+          <div class="ctf-detail">French national CTF — 4000+ participants</div>
+        </div>
+        <div class="ctf-year">2025</div>
+      </div>
+      <div class="ctf-row fade-up d3">
+        <div class="ctf-rank-badge rank-bronze">4th</div>
+        <div class="ctf-info">
+          <div class="ctf-name">Passe Ton Hack d'Abord</div>
+          <div class="ctf-detail">Team ranking</div>
+        </div>
+        <div class="ctf-year">2025</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SKILLS -->
+<section id="skills">
+  <div class="wrap">
+    <div class="sec-header fade-up">
+      <span class="sec-num">03 /</span>
+      <h2 class="sec-title">Skills</h2>
+    </div>
+    <div class="skills-grid">
+      <div class="skill-group fade-up d1">
+        <div class="skill-group-label">Offensive</div>
+        <div class="skill-pills">
+          <span class="skill-pill">Red teaming</span>
+          <span class="skill-pill">Malware dev.</span>
+          <span class="skill-pill">Reverse engineering</span>
+          <span class="skill-pill">Process injection</span>
+          <span class="skill-pill">OSINT</span>
+          <span class="skill-pill">Web sec (OWASP)</span>
+        </div>
+      </div>
+      <div class="skill-group fade-up d2">
+        <div class="skill-group-label">Defensive</div>
+        <div class="skill-pills">
+          <span class="skill-pill">Detection eng.</span>
+          <span class="skill-pill">EDR development</span>
+          <span class="skill-pill">Threat modeling</span>
+          <span class="skill-pill">API hooking</span>
+          <span class="skill-pill">Threat emulation</span>
+        </div>
+      </div>
+      <div class="skill-group fade-up d3">
+        <div class="skill-group-label">Languages</div>
+        <div class="skill-pills">
+          <span class="skill-pill">C++</span>
+          <span class="skill-pill">C#</span>
+          <span class="skill-pill">Python</span>
+          <span class="skill-pill">Bash</span>
+          <span class="skill-pill">PowerShell</span>
+          <span class="skill-pill">SQL</span>
+        </div>
+      </div>
+      <div class="skill-group fade-up d4">
+        <div class="skill-group-label">Tools &amp; platforms</div>
+        <div class="skill-pills">
+          <span class="skill-pill">Kali Linux</span>
+          <span class="skill-pill">Windows internals</span>
+          <span class="skill-pill">VirtualBox</span>
+          <span class="skill-pill">Raspberry Pi</span>
+          <span class="skill-pill">Arduino</span>
+          <span class="skill-pill">Android Studio</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ABOUT -->
+<section id="about">
+  <div class="wrap">
+    <div class="sec-header fade-up">
+      <span class="sec-num">04 /</span>
+      <h2 class="sec-title">About</h2>
+    </div>
+    <div class="about-grid">
+      <div class="about-text fade-up d1">
+        <p>
+          Cybersecurity-focused developer with a strong interest in both sides of the fence — understanding how attacks work is the most reliable way to build meaningful defenses.
+        </p>
+        <p>
+          Currently working on a personal EDR project to go deeper into Windows internals, process injection, and detection logic. Also learning C++ seriously.
+        </p>
+        <p>
+          I do malware research and reverse engineering for educational purposes only — the goal is always detection, never harm.
+        </p>
+        <p>
+          Open to collaboration on red teaming and detection engineering projects. Reach me at <a href="mailto:novaek.dev@gmail.com">novaek.dev@gmail.com</a>.
+        </p>
+      </div>
+      <div class="about-highlights fade-up d2">
+        <div class="highlight-item">
+          <div class="hl-dot"></div>
+          Currently learning C++ and process injection internals
+        </div>
+        <div class="highlight-item">
+          <div class="hl-dot"></div>
+          Building a behavioral EDR from scratch
+        </div>
+        <div class="highlight-item">
+          <div class="hl-dot"></div>
+          Done multiple pentests (intern)
+        </div>
+        <div class="highlight-item">
+          <div class="hl-dot"></div>
+          Open to red team collaboration
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="wrap">
+    <div class="sec-header fade-up">
+      <span class="sec-num">05 /</span>
+      <h2 class="sec-title">Contact</h2>
+    </div>
+    <div class="contact-grid">
+      <a href="https://github.com/novaek" class="contact-card fade-up d1" target="_blank" rel="noopener">
+        <div class="contact-icon">
+          <svg fill="none" viewBox="0 0 24 24"><path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 0 0-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0 0 20 4.77 5.07 5.07 0 0 0 19.91 1S18.73.65 16 2.48a13.38 13.38 0 0 0-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 0 0 5 4.77a5.44 5.44 0 0 0-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 0 0 9 18.13V22" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        GitHub
+      </a>
+      <a href="mailto:novaek.dev@gmail.com" class="contact-card fade-up d2">
+        <div class="contact-icon">
+          <svg fill="none" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2" stroke-width="1.5"/><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" stroke-width="1.5" stroke-linecap="round"/></svg>
+        </div>
+        Email
+      </a>
+      <a href="https://www.linkedin.com/in/" class="contact-card fade-up d3" target="_blank" rel="noopener">
+        <div class="contact-icon">
+          <svg fill="none" viewBox="0 0 24 24"><path d="M16 8a6 6 0 0 1 6 6v7h-4v-7a2 2 0 0 0-2-2 2 2 0 0 0-2 2v7h-4v-7a6 6 0 0 1 6-6z" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><rect x="2" y="9" width="4" height="12" stroke-width="1.5"/><circle cx="4" cy="4" r="2" stroke-width="1.5"/></svg>
+        </div>
+        LinkedIn
+      </a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    <div class="footer-inner">
+      <span class="footer-logo">novaek</span>
+      <span>built with intention, not a template</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach(e => {
+      if (e.isIntersecting) {
+        e.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+  document.querySelectorAll('.fade-up').forEach(el => observer.observe(el));
+</script>
+</body>
+</html>
